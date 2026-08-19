@@ -87,6 +87,8 @@ figures/<device-id>/latency_payload_tradeoff.svg
 figures/<device-id>/isotp_frames.svg
 ~~~
 
+当前多设备结果的汇总比较见 [多设备 Benchmark 对比分析](docs/MULTI_DEVICE_ANALYSIS.md)。
+
 metadata.json 采用结构化格式，尽可能记录 CPU 型号、架构、核心/线程、缓存与
 指令集、标称及采样频率、调频驱动/governor、Boost 状态、内存总量与内存条
 型号/频率、操作系统和内核、虚拟化环境、系统负载、编译器与实际编译命令、

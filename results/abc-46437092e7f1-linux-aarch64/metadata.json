@@ -1,0 +1,229 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-08-19T09:06:53.124156+00:00",
+  "device": {
+    "id": "abc-46437092e7f1-linux-aarch64",
+    "user": "abc",
+    "hostname": "46437092e7f1"
+  },
+  "operating_system": {
+    "system": "Linux",
+    "release": "7.0.11-orbstack-00360-gc9bc4d96ac70",
+    "version": "#1 SMP PREEMPT Thu Jun  4 16:40:25 UTC 2026",
+    "kernel": "Linux 46437092e7f1 7.0.11-orbstack-00360-gc9bc4d96ac70 #1 SMP PREEMPT Thu Jun  4 16:40:25 UTC 2026 aarch64 GNU/Linux",
+    "distribution": {
+      "pretty_name": "Ubuntu 26.04 LTS",
+      "name": "Ubuntu",
+      "version_id": "26.04",
+      "version": "26.04 LTS (Resolute Raccoon)",
+      "version_codename": "resolute",
+      "id": "ubuntu",
+      "id_like": "debian",
+      "home_url": "https://www.ubuntu.com/",
+      "support_url": "https://help.ubuntu.com/",
+      "bug_report_url": "https://bugs.launchpad.net/ubuntu/",
+      "privacy_policy_url": "https://www.ubuntu.com/legal/terms-and-policies/privacy-policy",
+      "ubuntu_codename": "resolute",
+      "logo": "ubuntu-logo"
+    },
+    "virtualization": "docker"
+  },
+  "hardware": {
+    "system_vendor": null,
+    "product_name": null,
+    "product_version": null,
+    "board_name": null,
+    "device_tree_model": null
+  },
+  "cpu": {
+    "architecture": "aarch64",
+    "model_name": null,
+    "vendor_id": "Apple",
+    "sockets": "-",
+    "cores_per_socket": null,
+    "threads_per_core": "1",
+    "logical_cpus": "10",
+    "numa_nodes": null,
+    "byte_order": "Little Endian",
+    "flags": [
+      "fp",
+      "asimd",
+      "evtstrm",
+      "aes",
+      "pmull",
+      "sha1",
+      "sha2",
+      "crc32",
+      "atomics",
+      "fphp",
+      "asimdhp",
+      "cpuid",
+      "asimdrdm",
+      "jscvt",
+      "fcma",
+      "lrcpc",
+      "dcpop",
+      "sha3",
+      "asimddp",
+      "sha512",
+      "asimdfhm",
+      "dit",
+      "uscat",
+      "ilrcpc",
+      "flagm",
+      "sb",
+      "dcpodp",
+      "flagm2",
+      "frint",
+      "bf16",
+      "ecv",
+      "afp"
+    ],
+    "frequency": {
+      "min_khz": 2000000,
+      "max_khz": 2000000,
+      "current_khz": {
+        "minimum": 2000000,
+        "maximum": 2000000,
+        "average": 2000000,
+        "sampled_cpus": 10
+      },
+      "governors": [
+        "performance"
+      ],
+      "drivers": [
+        "dummy-cpufreq"
+      ],
+      "boost_enabled": null,
+      "lscpu_min_mhz": "2000.0000",
+      "lscpu_max_mhz": "2000.0000",
+      "note": "Current frequency is a point-in-time sample and may change under DVFS."
+    },
+    "lscpu": {
+      "Architecture": "aarch64",
+      "CPU op-mode(s)": "64-bit",
+      "Byte Order": "Little Endian",
+      "CPU(s)": "10",
+      "On-line CPU(s) list": "0-9",
+      "Vendor ID": "Apple",
+      "Model name": "-",
+      "Model": "0",
+      "Thread(s) per core": "1",
+      "Core(s) per cluster": "10",
+      "Socket(s)": "-",
+      "Cluster(s)": "1",
+      "Stepping": "0x0",
+      "CPU(s) scaling MHz": "100%",
+      "CPU max MHz": "2000.0000",
+      "CPU min MHz": "2000.0000",
+      "BogoMIPS": "48.00",
+      "Flags": "fp asimd evtstrm aes pmull sha1 sha2 crc32 atomics fphp asimdhp cpuid asimdrdm jscvt fcma lrcpc dcpop sha3 asimddp sha512 asimdfhm dit uscat ilrcpc flagm sb dcpodp flagm2 frint bf16 ecv afp",
+      "L1d cache": "1.3 MiB (10 instances)",
+      "L1i cache": "1.9 MiB (10 instances)",
+      "L2 cache": "48 MiB (3 instances)",
+      "L3 cache": "64 MiB (1 instance)",
+      "Vulnerability Gather data sampling": "Not affected",
+      "Vulnerability Ghostwrite": "Not affected",
+      "Vulnerability Indirect target selection": "Not affected",
+      "Vulnerability Itlb multihit": "Not affected",
+      "Vulnerability L1tf": "Not affected",
+      "Vulnerability Mds": "Not affected",
+      "Vulnerability Meltdown": "Not affected",
+      "Vulnerability Mmio stale data": "Not affected",
+      "Vulnerability Old microcode": "Not affected",
+      "Vulnerability Reg file data sampling": "Not affected",
+      "Vulnerability Retbleed": "Not affected",
+      "Vulnerability Spec rstack overflow": "Not affected",
+      "Vulnerability Spec store bypass": "Vulnerable",
+      "Vulnerability Spectre v1": "Mitigation; __user pointer sanitization",
+      "Vulnerability Spectre v2": "Mitigation; CSV2, but not BHB",
+      "Vulnerability Srbds": "Not affected",
+      "Vulnerability Tsa": "Not affected",
+      "Vulnerability Tsx async abort": "Not affected",
+      "Vulnerability Vmscape": "Not affected"
+    }
+  },
+  "memory": {
+    "total_bytes": 8394141696,
+    "modules": [],
+    "module_query_status": "dmidecode not installed"
+  },
+  "benchmark": {
+    "source": {
+      "available": true,
+      "commit": "ab399f2d76bb9c940fac834f54cfd685250dd2ff",
+      "worktree": "clean"
+    },
+    "iterations": 10000,
+    "warmup": 1000,
+    "cpu_affinity": "0",
+    "executable": "/config/Work/clpkc/uds29-benchmark/build/uds29_bench",
+    "linked_libraries": [
+      "linux-vdso.so.1 (0x0000ffffb4b79000)",
+      "\t/usr/lib/selkies_joystick_interposer.so (0x0000ffffb4ad0000)",
+      "\t/opt/lib/libudev.so.1.0.0-fake (0x0000ffffb4aa0000)",
+      "\tlibcrypto.so.3 => /config/Work/clpkc/uds29-benchmark/build/tongsuo-install/lib/libcrypto.so.3 (0x0000ffffb4510000)",
+      "\tlibm.so.6 => /usr/lib/aarch64-linux-gnu/libm.so.6 (0x0000ffffb4440000)",
+      "\tlibc.so.6 => /usr/lib/aarch64-linux-gnu/libc.so.6 (0x0000ffffb4270000)",
+      "\t/lib/ld-linux-aarch64.so.1 (0x0000ffffb4b30000)"
+    ],
+    "system_load_average": [
+      0.4501953125,
+      0.7646484375,
+      0.78515625
+    ]
+  },
+  "build": {
+    "compiler": {
+      "command": "cc",
+      "version": [
+        "cc (Ubuntu 15.2.0-16ubuntu1) 15.2.0",
+        "Copyright (C) 2025 Free Software Foundation, Inc.",
+        "This is free software; see the source for copying conditions.  There is NO",
+        "warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
+      ]
+    },
+    "effective_make_dry_run": [
+      "make: Entering directory '/config/Work/clpkc/uds29-benchmark'",
+      "mkdir -p build",
+      "cc -I/config/Work/clpkc/uds29-benchmark/build/tongsuo-install/include -O2 -g -std=c11 -Wall -Wextra -Wpedantic -Wno-deprecated-declarations src/uds29_bench.c -L/config/Work/clpkc/uds29-benchmark/build/tongsuo-install/lib64 -L/config/Work/clpkc/uds29-benchmark/build/tongsuo-install/lib -lcrypto -pthread -ldl -lm -o build/uds29_bench",
+      "make: Leaving directory '/config/Work/clpkc/uds29-benchmark'"
+    ],
+    "environment": {
+      "CC": null,
+      "CFLAGS": null,
+      "CPPFLAGS": null,
+      "LDFLAGS": null,
+      "JOBS": null
+    }
+  },
+  "dependencies": {
+    "tongsuo": {
+      "prefix": "/config/Work/clpkc/uds29-benchmark/build/tongsuo-install",
+      "version": [
+        "Tongsuo: Tongsuo 8.5.0-pre2 (Library: Tongsuo 8.5.0-pre2)",
+        "OpenSSL 3.5.4 3 Aug 2026 (Library: OpenSSL 3.5.4 3 Aug 2026)",
+        "built on: Wed Aug 19 02:37:10 2026 UTC",
+        "platform: linux-aarch64",
+        "options:  bn(64,64)",
+        "compiler: gcc -fPIC -pthread -Wa,--noexecstack -Wall -O3 -DOPENSSL_USE_NODELETE -DOPENSSL_PIC -DOPENSSL_BUILDING_OPENSSL -DNDEBUG ",
+        "OPENSSLDIR: \"/config/Work/clpkc/uds29-benchmark/build/tongsuo-install/ssl\"",
+        "ENGINESDIR: \"/config/Work/clpkc/uds29-benchmark/build/tongsuo-install/lib/engines-3\"",
+        "MODULESDIR: \"/config/Work/clpkc/uds29-benchmark/build/tongsuo-install/lib/ossl-modules\"",
+        "Seeding source: os-specific",
+        "CPUINFO: OPENSSL_armcap=0x8fd",
+        "engines:  dynamic"
+      ],
+      "source": {
+        "available": true,
+        "commit": "540603a3ff952ce00590bca022015feffbfb7597",
+        "worktree": "clean"
+      }
+    },
+    "libc": {
+      "name": "glibc",
+      "version": "2.43"
+    },
+    "python": "3.14.4"
+  }
+}
