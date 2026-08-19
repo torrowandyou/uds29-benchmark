@@ -1,0 +1,30 @@
+Tongsuo/OpenSSL: OpenSSL 3.5.4 3 Aug 2026
+iterations=10000 warmup=1000 challenge=32 bytes; negative tests=PASS
+
+CL-ECS-SM2         wire=188 bytes (2901=84,6901=34,2903=67,6903=3)
+  2901_credential    mean=  151.319 us  median=  138.334  p95=  162.875  sd= 449.054
+  6901_challenge     mean=    0.438 us  median=    0.333  p95=    1.125  sd=   0.878
+  2903_sign          mean=  127.926 us  median=  122.292  p95=  145.208  sd=  79.914
+  6903_verify        mean=  268.031 us  median=  256.375  p95=  302.750  sd= 300.097
+  crypto_total       mean=  547.713 us  median=  518.626  p95=  617.043  sd= 551.207
+
+RSA-2048-PSS+X509  wire=1055 bytes (2901=760,6901=34,2903=258,6903=3)
+  2901_credential    mean=   27.607 us  median=   23.084  p95=   32.500  sd= 223.718
+  6901_challenge     mean=    0.473 us  median=    0.375  p95=    1.042  sd=   0.679
+  2903_sign          mean=  374.918 us  median=  340.417  p95=  457.625  sd= 750.103
+  6903_verify        mean=   17.175 us  median=   16.125  p95=   20.917  sd=   5.431
+  crypto_total       mean=  420.173 us  median=  380.582  p95=  521.167  sd= 783.906
+
+ECDSA-P256+X509    wire=476 bytes (2901=365,6901=34,2903=74,6903=3)
+  2901_credential    mean=   54.322 us  median=   50.750  p95=   66.458  sd=  18.554
+  6901_challenge     mean=    0.555 us  median=    0.417  p95=    1.167  sd=   0.657
+  2903_sign          mean=   13.632 us  median=   12.875  p95=   16.708  sd=   4.451
+  6903_verify        mean=   37.215 us  median=   34.750  p95=   42.167  sd= 106.455
+  crypto_total       mean=  105.724 us  median=   99.209  p95=  124.876  sd= 109.372
+
+SM2-SM3+X509       wire=475 bytes (2901=364,6901=34,2903=74,6903=3)
+  2901_credential    mean=  174.611 us  median=  156.958  p95=  187.792  sd= 807.574
+  6901_challenge     mean=    0.406 us  median=    0.333  p95=    1.000  sd=   0.538
+  2903_sign          mean=  139.027 us  median=  130.750  p95=  154.750  sd= 286.748
+  6903_verify        mean=  143.131 us  median=  136.584  p95=  161.541  sd= 169.287
+  crypto_total       mean=  457.174 us  median=  425.750  p95=  509.499  sd=1008.435
