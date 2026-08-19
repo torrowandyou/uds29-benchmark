@@ -1,0 +1,12 @@
+device_id=root-c202605211665597-linux-x86_64
+user=root
+hostname=C202605211665597
+generated_at_utc=2026-08-19T07:27:57Z
+benchmark_commit=08074ac184f31a75337b6c8d7b3f6a0d4c043390
+benchmark_worktree=clean
+iterations=10000
+warmup=1000
+cpu_affinity=unbound
+platform=Linux 6.8.0-137-generic x86_64
+compiler=cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0
+tongsuo=Tongsuo: Tongsuo 8.5.0-pre2 (Library: Tongsuo 8.5.0-pre2);OpenSSL 3.5.4 3 Aug 2026 (Library: OpenSSL 3.5.4 3 Aug 2026)
