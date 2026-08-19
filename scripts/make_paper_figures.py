@@ -81,88 +81,198 @@ def patterned_bar(s, scheme, x, y, w, h):
     s.rect(x, y, w, h, fill=f"url(#{HATCH[scheme]})", stroke="none", rx=2)
 
 
-def make_overview(rows, output_path):
-    W, H = 1800, 720
-    s = SVG(W, H, "UDS 0x29 authentication performance overview", "Median and P95 latency, message bytes, and latency-bandwidth trade-off")
-    s.text(900, 42, "UDS 0x29 Authentication: Computation and Communication Performance", 31, weight="bold")
-
-    # Shared scheme legend.
-    lx = 350
-    for i, scheme in enumerate(SCHEMES):
-        x = lx + i * 270
-        patterned_bar(s, scheme, x, 62, 35, 20)
-        s.text(x + 46, 79, SHORT[scheme], 21, anchor="start")
-
-    # Panel A: phase medians on a linear scale; small cap marks P95.
-    x0, y0, pw, ph = 82, 128, 720, 480
-    s.text(x0, 112, "(a) Online latency by protocol phase", 26, anchor="start", weight="bold")
-    max_latency = max(float(rows[(scheme, phase)]["p95_us"]) for scheme in SCHEMES for phase in PHASES)
-    rough_step = max_latency / 5
+def nice_axis(max_value, target_ticks=5):
+    if max_value <= 0:
+        return 1.0, 1.0
+    rough_step = max_value / target_ticks
     magnitude = 10 ** math.floor(math.log10(rough_step))
-    tick_step = next(step * magnitude for step in (1, 2, 5, 10) if step * magnitude >= rough_step)
-    ymax = math.ceil(max_latency / tick_step) * tick_step
-    def ya(v): return y0 + ph - v / ymax * ph
+    tick_step = next(
+        step * magnitude for step in (1, 2, 5, 10)
+        if step * magnitude >= rough_step
+    )
+    limit = math.ceil(max_value / tick_step) * tick_step
+    return limit, tick_step
+
+
+def draw_scheme_legend(s, y, start_x, spacing):
+    for i, scheme in enumerate(SCHEMES):
+        x = start_x + i * spacing
+        patterned_bar(s, scheme, x, y - 17, 32, 19)
+        s.text(x + 42, y, SHORT[scheme], 19, anchor="start")
+
+
+def make_latency(rows, output_path):
+    W, H = 1050, 700
+    s = SVG(
+        W,
+        H,
+        "Online latency by UDS 0x29 protocol phase",
+        "Median latency bars and P95 caps on a linear microsecond scale",
+    )
+    s.text(W / 2, 42, "(a) Online Latency by Protocol Phase", 30, weight="bold")
+    draw_scheme_legend(s, 78, 90, 235)
+
+    x0, y0, pw, ph = 92, 112, 900, 470
+    max_latency = max(
+        float(rows[(scheme, phase)]["p95_us"])
+        for scheme in SCHEMES
+        for phase in PHASES
+    )
+    ymax, tick_step = nice_axis(max_latency)
+
+    def yscale(value):
+        return y0 + ph - value / ymax * ph
+
     for i in range(round(ymax / tick_step) + 1):
         tick = i * tick_step
-        y = ya(tick); s.line(x0, y, x0 + pw, y, stroke="#D2D2D2", stroke_width=1)
-        s.text(x0 - 13, y + 7, f"{tick:g}", 20, anchor="end")
-    s.line(x0, y0, x0, y0 + ph); s.line(x0, y0 + ph, x0 + pw, y0 + ph)
-    group_w, bar_w = pw / 4, 30
-    for j, (phase, label) in enumerate(zip(PHASES, PHASE_LABELS)):
-        center = x0 + (j + .5) * group_w
-        for i, scheme in enumerate(SCHEMES):
-            row = rows[(scheme, phase)]; med = float(row["median_us"]); p95 = float(row["p95_us"])
-            x = center + (i - 1.5) * 38 - bar_w / 2; y = ya(med)
+        y = yscale(tick)
+        s.line(x0, y, x0 + pw, y, stroke="#D2D2D2", stroke_width=1)
+        s.text(x0 - 12, y + 7, f"{tick:g}", 20, anchor="end")
+    s.line(x0, y0, x0, y0 + ph)
+    s.line(x0, y0 + ph, x0 + pw, y0 + ph)
+
+    group_w, bar_w = pw / len(PHASES), 34
+    for phase_index, (phase, label) in enumerate(zip(PHASES, PHASE_LABELS)):
+        center = x0 + (phase_index + 0.5) * group_w
+        for scheme_index, scheme in enumerate(SCHEMES):
+            row = rows[(scheme, phase)]
+            median = float(row["median_us"])
+            p95 = float(row["p95_us"])
+            x = center + (scheme_index - 1.5) * 43 - bar_w / 2
+            y = yscale(median)
             patterned_bar(s, scheme, x, y, bar_w, y0 + ph - y)
-            capy = ya(p95); s.line(x + 4, capy, x + bar_w - 4, capy, stroke="#111", stroke_width=3)
-        s.text(center, y0 + ph + 28, label, 19)
-    s.text(25, y0 + ph / 2, "Latency (μs)", 22, transform=f"rotate(-90 25 {y0 + ph / 2})")
-    s.text(x0 + pw - 2, y0 + 18, "bar: median; cap: P95", 18, anchor="end", fill="#555")
+            cap_y = yscale(p95)
+            s.line(x + 4, cap_y, x + bar_w - 4, cap_y, stroke="#111", stroke_width=3)
+        s.text(center, y0 + ph + 29, label, 19)
 
-    # Panel B: stacked wire bytes.
-    bx, by, bw, bh = 885, 128, 400, 480
-    s.text(bx, 112, "(b) UDS payload size", 26, anchor="start", weight="bold")
-    maxb = 1400
-    def yb(v): return by + bh - v / maxb * bh
-    for tick in range(0, 1401, 200):
-        y = yb(tick); s.line(bx, y, bx + bw, y, stroke="#D2D2D2", stroke_width=1); s.text(bx - 10, y + 7, tick, 19, anchor="end")
-    s.line(bx, by, bx, by + bh); s.line(bx, by + bh, bx + bw, by + bh)
+    s.text(26, y0 + ph / 2, "Latency (μs)", 22, transform=f"rotate(-90 26 {y0 + ph / 2})")
+    s.text(x0 + pw, y0 + 18, "bar: median; cap: P95", 17, anchor="end", fill="#555")
+    s.text(W - 20, H - 16, "Linear scale; values read directly from input CSV", 16, anchor="end", fill="#555")
+    output_path.write_text(s.finish(), encoding="utf-8")
+
+
+def make_payload(rows, output_path):
+    W, H = 850, 700
+    s = SVG(
+        W,
+        H,
+        "UDS 0x29 application payload size",
+        "Stacked application payload bytes for the four authentication messages",
+    )
+    s.text(W / 2, 42, "(b) UDS Payload Size", 30, weight="bold")
+
     keys = ["wire_2901", "wire_6901", "wire_2903", "wire_6903"]
-    for i, scheme in enumerate(SCHEMES):
-        row = rows[(scheme, "total")]; vals = [int(row[k]) for k in keys]; x = bx + 18 + i * 94; acc = 0
-        for val, col, lab in zip(vals, MSG_COLORS, MSG_LABELS):
-            y_top, y_bot = yb(acc + val), yb(acc)
-            s.rect(x, y_top, 58, y_bot - y_top, fill=col, stroke="white", stroke_width=1)
-            if y_bot - y_top > 27: s.text(x + 29, (y_top + y_bot) / 2 + 7, val, 17, fill="white", weight="bold")
-            acc += val
-        s.text(x + 29, yb(acc) - 9, acc, 20, weight="bold")
-        s.text(x + 29, by + bh + 27, SHORT[scheme].replace("-2048", "\n2048").replace("-P256", "\nP256").replace("-SM3", "\nSM3"), 16)
-    s.text(bx - 54, by + bh / 2, "Bytes", 22, transform=f"rotate(-90 {bx - 54} {by + bh / 2})")
-    for i, (lab, col) in enumerate(zip(MSG_LABELS, MSG_COLORS)):
-        x = bx + (i % 2) * 110 + 170; y = by + 24 + (i // 2) * 28
-        s.rect(x, y - 14, 23, 16, fill=col); s.text(x + 30, y, lab, 17, anchor="start")
+    totals = {
+        scheme: sum(int(rows[(scheme, "total")][key]) for key in keys)
+        for scheme in SCHEMES
+    }
+    ymax, tick_step = nice_axis(max(totals.values()), target_ticks=6)
+    x0, y0, pw, ph = 100, 92, 690, 490
 
-    # Panel C: lower-left is desirable.
-    cx, cy, cw, ch = 1380, 128, 350, 480
-    s.text(cx, 112, "(c) Latency–payload trade-off", 26, anchor="start", weight="bold")
-    def xc(v): return cx + v / 1200 * cw
-    def yc(v): return cy + ch - v / 600 * ch
-    for tick in range(0, 1201, 300):
-        x=xc(tick);s.line(x,cy,x,cy+ch,stroke="#E1E1E1",stroke_width=1);s.text(x,cy+ch+25,tick,18)
-    for tick in range(0, 601, 100):
-        y=yc(tick);s.line(cx,y,cx+cw,y,stroke="#E1E1E1",stroke_width=1);s.text(cx-9,y+6,tick,18,anchor="end")
-    s.line(cx,cy,cx,cy+ch);s.line(cx,cy+ch,cx+cw,cy+ch)
-    offsets={SCHEMES[0]:(10,-18),SCHEMES[1]:(-10,-18),SCHEMES[2]:(10,-14),SCHEMES[3]:(10,-16)}
-    anchors={SCHEMES[0]:"start",SCHEMES[1]:"end",SCHEMES[2]:"start",SCHEMES[3]:"start"}
+    def yscale(value):
+        return y0 + ph - value / ymax * ph
+
+    for i in range(round(ymax / tick_step) + 1):
+        tick = i * tick_step
+        y = yscale(tick)
+        s.line(x0, y, x0 + pw, y, stroke="#D2D2D2", stroke_width=1)
+        s.text(x0 - 11, y + 7, f"{tick:g}", 20, anchor="end")
+    s.line(x0, y0, x0, y0 + ph)
+    s.line(x0, y0 + ph, x0 + pw, y0 + ph)
+
+    bar_w = 82
+    for i, scheme in enumerate(SCHEMES):
+        row = rows[(scheme, "total")]
+        values = [int(row[key]) for key in keys]
+        center = x0 + (i + 0.5) * pw / len(SCHEMES)
+        x = center - bar_w / 2
+        accumulated = 0
+        for value, color in zip(values, MSG_COLORS):
+            y_top, y_bottom = yscale(accumulated + value), yscale(accumulated)
+            s.rect(x, y_top, bar_w, y_bottom - y_top, fill=color, stroke="white", stroke_width=1)
+            if y_bottom - y_top > 27:
+                s.text(center, (y_top + y_bottom) / 2 + 7, value, 17, fill="white", weight="bold")
+            accumulated += value
+        s.text(center, yscale(accumulated) - 9, accumulated, 20, weight="bold")
+        label = SHORT[scheme].replace("-2048", "\n2048").replace("-P256", "\nP256").replace("-SM3", "\nSM3")
+        s.text(center, y0 + ph + 30, label, 18)
+
+    s.text(28, y0 + ph / 2, "Application payload (bytes)", 22, transform=f"rotate(-90 28 {y0 + ph / 2})")
+    legend_start = 155
+    for i, (label, color) in enumerate(zip(MSG_LABELS, MSG_COLORS)):
+        x = legend_start + i * 145
+        s.rect(x, 650, 25, 17, fill=color)
+        s.text(x + 34, 665, label, 18, anchor="start")
+    output_path.write_text(s.finish(), encoding="utf-8")
+
+
+def make_tradeoff(rows, output_path):
+    W, H = 850, 700
+    s = SVG(
+        W,
+        H,
+        "Latency and payload trade-off",
+        "Median online latency versus total UDS application payload",
+    )
+    s.text(W / 2, 42, "(c) Latency–Payload Trade-off", 30, weight="bold")
+
+    keys = ["wire_2901", "wire_6901", "wire_2903", "wire_6903"]
+    totals = {
+        scheme: sum(int(rows[(scheme, "total")][key]) for key in keys)
+        for scheme in SCHEMES
+    }
+    medians = {
+        scheme: float(rows[(scheme, "total")]["median_us"])
+        for scheme in SCHEMES
+    }
+    xmax, xstep = nice_axis(max(totals.values()), target_ticks=6)
+    ymax, ystep = nice_axis(max(medians.values()), target_ticks=6)
+    x0, y0, pw, ph = 105, 86, 680, 500
+
+    def xscale(value):
+        return x0 + value / xmax * pw
+
+    def yscale(value):
+        return y0 + ph - value / ymax * ph
+
+    for i in range(round(xmax / xstep) + 1):
+        tick = i * xstep
+        x = xscale(tick)
+        s.line(x, y0, x, y0 + ph, stroke="#E1E1E1", stroke_width=1)
+        s.text(x, y0 + ph + 25, f"{tick:g}", 18)
+    for i in range(round(ymax / ystep) + 1):
+        tick = i * ystep
+        y = yscale(tick)
+        s.line(x0, y, x0 + pw, y, stroke="#E1E1E1", stroke_width=1)
+        s.text(x0 - 10, y + 6, f"{tick:g}", 18, anchor="end")
+    s.line(x0, y0, x0, y0 + ph)
+    s.line(x0, y0 + ph, x0 + pw, y0 + ph)
+
+    offsets = {
+        SCHEMES[0]: (12, -18),
+        SCHEMES[1]: (-12, -18),
+        SCHEMES[2]: (12, -15),
+        SCHEMES[3]: (12, -17),
+    }
+    anchors = {
+        SCHEMES[0]: "start",
+        SCHEMES[1]: "end",
+        SCHEMES[2]: "start",
+        SCHEMES[3]: "start",
+    }
     for scheme in SCHEMES:
-        row=rows[(scheme,"total")]; total=sum(int(row[k]) for k in keys); med=float(row["median_us"]); x,y=xc(total),yc(med)
-        s.circle(x,y,12,fill=COLORS[scheme],stroke="#111",stroke_width=1.5)
-        dx,dy=offsets[scheme];s.text(x+dx,y+dy,SHORT[scheme],18,anchor=anchors[scheme],weight="bold")
-    s.line(cx+250,cy+80,cx+55,cy+390,stroke="#555",stroke_width=2,stroke_dasharray="7 6",marker_end="url(#arrow)")
-    s.text(cx+235,cy+68,"Lower is better",18,anchor="end",fill="#555",font_style="italic")
-    s.text(cx+cw/2,cy+ch+55,"Total UDS payload (bytes)",21)
-    s.text(cx-61,cy+ch/2,"Median online latency (μs)",21,transform=f"rotate(-90 {cx-61} {cy+ch/2})")
-    s.text(W-25,H-18,"Median/P95 from input CSV; 32-byte challenge",17,anchor="end",fill="#555")
+        x, y = xscale(totals[scheme]), yscale(medians[scheme])
+        s.circle(x, y, 12, fill=COLORS[scheme], stroke="#111", stroke_width=1.5)
+        dx, dy = offsets[scheme]
+        s.text(x + dx, y + dy, SHORT[scheme], 19, anchor=anchors[scheme], weight="bold")
+
+    s.line(x0 + pw * 0.80, y0 + ph * 0.20, x0 + pw * 0.18, y0 + ph * 0.82,
+           stroke="#555", stroke_width=2, stroke_dasharray="7 6", marker_end="url(#arrow)")
+    s.text(x0 + pw * 0.79, y0 + ph * 0.17, "Lower is better", 18, anchor="end",
+           fill="#555", font_style="italic")
+    s.text(x0 + pw / 2, 655, "Total UDS payload (bytes)", 22)
+    s.text(27, y0 + ph / 2, "Median online latency (μs)", 22,
+           transform=f"rotate(-90 27 {y0 + ph / 2})")
     output_path.write_text(s.finish(), encoding="utf-8")
 
 
@@ -201,18 +311,21 @@ def main():
     parser.add_argument("output_svg", type=Path, help="SVG file to create")
     parser.add_argument(
         "--figure",
-        choices=("overview", "isotp"),
-        default="overview",
-        help="figure type to generate (default: overview)",
+        choices=("latency", "payload", "tradeoff", "isotp"),
+        default="latency",
+        help="figure type to generate (default: latency)",
     )
     args = parser.parse_args()
 
     rows = load(args.input_csv)
     args.output_svg.parent.mkdir(parents=True, exist_ok=True)
-    if args.figure == "overview":
-        make_overview(rows, args.output_svg)
-    else:
-        make_frames(rows, args.output_svg)
+    generators = {
+        "latency": make_latency,
+        "payload": make_payload,
+        "tradeoff": make_tradeoff,
+        "isotp": make_frames,
+    }
+    generators[args.figure](rows, args.output_svg)
     print(f"Generated {args.output_svg}")
 
 

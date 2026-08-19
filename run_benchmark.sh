@@ -94,34 +94,27 @@ if [[ -n "${DYLD_LIBRARY_PATH:-}" ]]; then
   dyld_library_path="$dyld_library_path:$DYLD_LIBRARY_PATH"
 fi
 
-worktree_state=clean
-if [[ -n "$(git -C "$root_dir" status --porcelain 2>/dev/null || true)" ]]; then
-  worktree_state=dirty
-fi
-
-{
-  printf 'device_id=%s\n' "$device_id"
-  printf 'user=%s\n' "$local_user"
-  printf 'hostname=%s\n' "$local_host"
-  printf 'generated_at_utc=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-  printf 'benchmark_commit=%s\n' "$(git -C "$root_dir" rev-parse HEAD 2>/dev/null || printf unknown)"
-  printf 'benchmark_worktree=%s\n' "$worktree_state"
-  printf 'iterations=%s\n' "$iterations"
-  printf 'warmup=%s\n' "$warmup"
-  printf 'cpu_affinity=%s\n' "$cpu_label"
-  printf 'platform=%s\n' "$(uname -srm)"
-  printf 'compiler=%s\n' "$("$compiler" --version 2>/dev/null | head -n 1 || printf unknown)"
-  if [[ -x "$tongsuo_prefix/bin/openssl" ]]; then
-    tongsuo_version=$(env LD_LIBRARY_PATH="$library_path" DYLD_LIBRARY_PATH="$dyld_library_path" "$tongsuo_prefix/bin/openssl" version 2>/dev/null | paste -sd ';' - || printf unknown)
-    printf 'tongsuo=%s\n' "$tongsuo_version"
-  fi
-} >"$result_dir/metadata.txt"
-
+metadata_command=(
+  python3 "$root_dir/scripts/collect_metadata.py"
+  --output "$result_dir/metadata.json"
+  --device-id "$device_id"
+  --repo-root "$root_dir"
+  --binary "$binary"
+  --tongsuo-prefix "$tongsuo_prefix"
+  --tongsuo-source "$tongsuo_source"
+  --compiler "$compiler"
+  --iterations "$iterations"
+  --warmup "$warmup"
+  --cpu-affinity "$cpu_label"
+)
+env LD_LIBRARY_PATH="$library_path" DYLD_LIBRARY_PATH="$dyld_library_path" "${metadata_command[@]}"
 printf 'Device: %s\n' "$device_id"
 printf 'Running benchmark (%s iterations, %s warmup)...\n' "$iterations" "$warmup"
 env LD_LIBRARY_PATH="$library_path" DYLD_LIBRARY_PATH="$dyld_library_path" "${benchmark[@]}" 2>&1 | tee "$result_dir/results.txt"
 
-python3 "$root_dir/scripts/make_paper_figures.py" "$result_dir/results.csv" "$figure_dir/performance_overview.svg"
+python3 "$root_dir/scripts/make_paper_figures.py" "$result_dir/results.csv" "$figure_dir/latency_by_phase.svg" --figure latency
+python3 "$root_dir/scripts/make_paper_figures.py" "$result_dir/results.csv" "$figure_dir/payload_size.svg" --figure payload
+python3 "$root_dir/scripts/make_paper_figures.py" "$result_dir/results.csv" "$figure_dir/latency_payload_tradeoff.svg" --figure tradeoff
 python3 "$root_dir/scripts/make_paper_figures.py" "$result_dir/results.csv" "$figure_dir/isotp_frames.svg" --figure isotp
 
 printf 'Results: %s\nFigures: %s\n' "$result_dir" "$figure_dir"
