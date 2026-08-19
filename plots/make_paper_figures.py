@@ -3,14 +3,11 @@
 
 from __future__ import annotations
 
+import argparse
 import csv
 import html
 import math
 from pathlib import Path
-
-ROOT = Path(__file__).resolve().parent.parent
-CSV_PATH = ROOT / "results.csv"
-OUT = ROOT / "plots"
 
 SCHEMES = ["CL-ECS-SM2", "RSA-2048-PSS+X509", "ECDSA-P256+X509", "SM2-SM3+X509"]
 SHORT = {"CL-ECS-SM2": "CL-ECS-SM2", "RSA-2048-PSS+X509": "RSA-2048", "ECDSA-P256+X509": "ECDSA-P256", "SM2-SM3+X509": "SM2-SM3"}
@@ -22,9 +19,9 @@ MSG_COLORS = ["#4C78A8", "#F58518", "#54A24B", "#B279A2"]
 MSG_LABELS = ["0x2901", "0x6901", "0x2903", "0x6903"]
 
 
-def load():
+def load(csv_path):
     rows = {}
-    with CSV_PATH.open(newline="", encoding="utf-8") as f:
+    with csv_path.open(newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
             rows[(row["scheme"], row["phase"])] = row
     return rows
@@ -84,7 +81,7 @@ def patterned_bar(s, scheme, x, y, w, h):
     s.rect(x, y, w, h, fill=f"url(#{HATCH[scheme]})", stroke="none", rx=2)
 
 
-def make_overview(rows):
+def make_overview(rows, output_path):
     W, H = 1800, 720
     s = SVG(W, H, "UDS 0x29 authentication performance overview", "Median and P95 latency, message bytes, and latency-bandwidth trade-off")
     s.text(900, 42, "UDS 0x29 Authentication: Computation and Communication Performance", 31, weight="bold")
@@ -96,12 +93,17 @@ def make_overview(rows):
         patterned_bar(s, scheme, x, 62, 35, 20)
         s.text(x + 46, 79, SHORT[scheme], 21, anchor="start")
 
-    # Panel A: phase medians on logarithmic scale; small cap marks P95.
+    # Panel A: phase medians on a linear scale; small cap marks P95.
     x0, y0, pw, ph = 82, 128, 720, 480
     s.text(x0, 112, "(a) Online latency by protocol phase", 26, anchor="start", weight="bold")
-    ymin, ymax = 0.1, 1000.0
-    def ya(v): return y0 + ph - (math.log10(v) - math.log10(ymin)) / (math.log10(ymax) - math.log10(ymin)) * ph
-    for tick in [0.1, 1, 10, 100, 1000]:
+    max_latency = max(float(rows[(scheme, phase)]["p95_us"]) for scheme in SCHEMES for phase in PHASES)
+    rough_step = max_latency / 5
+    magnitude = 10 ** math.floor(math.log10(rough_step))
+    tick_step = next(step * magnitude for step in (1, 2, 5, 10) if step * magnitude >= rough_step)
+    ymax = math.ceil(max_latency / tick_step) * tick_step
+    def ya(v): return y0 + ph - v / ymax * ph
+    for i in range(round(ymax / tick_step) + 1):
+        tick = i * tick_step
         y = ya(tick); s.line(x0, y, x0 + pw, y, stroke="#D2D2D2", stroke_width=1)
         s.text(x0 - 13, y + 7, f"{tick:g}", 20, anchor="end")
     s.line(x0, y0, x0, y0 + ph); s.line(x0, y0 + ph, x0 + pw, y0 + ph)
@@ -114,7 +116,7 @@ def make_overview(rows):
             patterned_bar(s, scheme, x, y, bar_w, y0 + ph - y)
             capy = ya(p95); s.line(x + 4, capy, x + bar_w - 4, capy, stroke="#111", stroke_width=3)
         s.text(center, y0 + ph + 28, label, 19)
-    s.text(25, y0 + ph / 2, "Latency (μs, log scale)", 22, transform=f"rotate(-90 25 {y0 + ph / 2})")
+    s.text(25, y0 + ph / 2, "Latency (μs)", 22, transform=f"rotate(-90 25 {y0 + ph / 2})")
     s.text(x0 + pw - 2, y0 + 18, "bar: median; cap: P95", 18, anchor="end", fill="#555")
 
     # Panel B: stacked wire bytes.
@@ -161,10 +163,10 @@ def make_overview(rows):
     s.text(cx+cw/2,cy+ch+55,"Total UDS payload (bytes)",21)
     s.text(cx-61,cy+ch/2,"Median online latency (μs)",21,transform=f"rotate(-90 {cx-61} {cy+ch/2})")
     s.text(W-25,H-18,"10,000 iterations; Tongsuo/OpenSSL 3.5.4; 32-byte challenge",17,anchor="end",fill="#555")
-    path=OUT/"fig1_performance_overview.svg";path.write_text(s.finish(),encoding="utf-8")
+    output_path.write_text(s.finish(), encoding="utf-8")
 
 
-def make_frames(rows):
+def make_frames(rows, output_path):
     W,H=1100,700;s=SVG(W,H,"Estimated ISO-TP frame counts","Estimated frame counts for Classical CAN and CAN FD")
     s.text(W/2,45,"Estimated ISO-TP Frames per UDS 0x29 Authentication",30,weight="bold")
     # Simplified normal-addressing models described in REPORT.md.
@@ -187,23 +189,31 @@ def make_frames(rows):
     s.rect(385,625,28,20,fill="#555");s.text(424,642,"Classical CAN",20,anchor="start")
     s.rect(610,625,28,20,fill="#555",fill_opacity=.52);s.text(649,642,"CAN FD",20,anchor="start")
     s.text(W/2,682,"Normal addressing; simplified payload capacities; excludes flow-control frames",17,fill="#555")
-    (OUT/"fig2_isotp_frames.svg").write_text(s.finish(),encoding="utf-8")
+    output_path.write_text(s.finish(), encoding="utf-8")
 
-
-def make_print_wrapper(stem, width, height):
-    markup = f'''<!doctype html><meta charset="utf-8"><style>
-@page {{ size: {width}px {height}px; margin: 0; }}
-html, body {{ margin: 0; width: {width}px; height: {height}px; overflow: hidden; background: white; }}
-img {{ display: block; width: {width}px; height: {height}px; }}
-</style><img src="{stem}.svg">'''
-    (OUT / f"{stem}.html").write_text(markup, encoding="utf-8")
 
 
 def main():
-    rows=load();OUT.mkdir(exist_ok=True);make_overview(rows);make_frames(rows)
-    make_print_wrapper("fig1_performance_overview", 1800, 720)
-    make_print_wrapper("fig2_isotp_frames", 1100, 700)
-    print("Generated fig1_performance_overview.svg and fig2_isotp_frames.svg")
+    parser = argparse.ArgumentParser(
+        description="Generate a publication-ready SVG figure from a benchmark CSV."
+    )
+    parser.add_argument("input_csv", type=Path, help="input benchmark CSV file")
+    parser.add_argument("output_svg", type=Path, help="SVG file to create")
+    parser.add_argument(
+        "--figure",
+        choices=("overview", "isotp"),
+        default="overview",
+        help="figure type to generate (default: overview)",
+    )
+    args = parser.parse_args()
+
+    rows = load(args.input_csv)
+    args.output_svg.parent.mkdir(parents=True, exist_ok=True)
+    if args.figure == "overview":
+        make_overview(rows, args.output_svg)
+    else:
+        make_frames(rows, args.output_svg)
+    print(f"Generated {args.output_svg}")
 
 
 if __name__ == "__main__":
