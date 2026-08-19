@@ -1,0 +1,9 @@
+device_id=apple-virtualized-aarch64
+generated_at_utc=unknown
+benchmark_commit=b501440
+iterations=10000
+warmup=1000
+cpu_affinity=0
+platform=Linux aarch64, Apple virtualization CPU
+compiler=GCC -O2
+tongsuo=Tongsuo 8.5.0-pre2, OpenSSL 3.5.4, source 540603a3f

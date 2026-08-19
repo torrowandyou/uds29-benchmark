@@ -9,18 +9,107 @@
 
 这里的“ECS”是本文明确实例化的 certificateless elliptic-curve signature，而不是 Tongsuo 内置的标准签名名称。Tongsuo 提供 SM2 曲线、随机数、SM3、BN/EC 运算、RSA、ECDSA 和 X.509 接口，程序在这些接口上构造并测试协议。
 
-## 构建与运行
+## 项目结构与多设备结果
 
-```bash
+~~~text
+src/                          固定的 C 源码
+scripts/make_paper_figures.py 固定的 SVG 绘图程序
+run_benchmark.sh              统一的自动构建、测试和绘图入口
+results/<device-id>/          各设备的 CSV、控制台输出和环境元数据
+figures/<device-id>/          各设备生成的 SVG
+build/                        本地编译和 Tongsuo 中间文件（Git 忽略）
+~~~
+
+运行脚本默认使用以下信息自动生成设备标识：
+
+~~~text
+<用户名>-<短主机名>-<操作系统>-<CPU架构>
+~~~
+
+名称会转成小写并清理特殊字符。例如 **alice-labpc-linux-x86_64**。
+用户名、主机名和平台信息也会写入该设备的 metadata.txt。若不希望将这些信息
+上传，可以用不含隐私信息的 DEVICE_ID 覆盖自动名称。
+
+## 一键构建、测试和画图
+
+首次使用前，只需将 Tongsuo 源码放在相邻的 **../Tongsuo** 目录；也可以通过
+**TONGSUO_SOURCE** 指定其他位置。随后在任意受支持电脑上执行：
+
+~~~bash
 cd uds29-benchmark
-JOBS=4 ./build_tongsuo.sh
-make clean all
-LD_LIBRARY_PATH=build/tongsuo-install/lib \
-  taskset -c 0 ./build/uds29_bench \
-  --iterations 10000 --warmup 1000 --csv results.csv
-```
+./run_benchmark.sh
+~~~
 
-若平台没有 `taskset`，可去掉该命令。`build_tongsuo.sh` 使用相邻的 `../Tongsuo` 源码，并只把产物写到本目录的 `build/`。可用 `TONGSUO_SOURCE`、`TONGSUO_BUILD`、`TONGSUO_PREFIX` 和 `JOBS` 覆盖默认值。
+统一入口会自动完成：
+
+1. 检测设备标识与平台信息；
+2. 在 build/ 中构建并安装本机 Tongsuo（尚未构建时）；
+3. 编译 build/uds29_bench；
+4. 执行功能负向用例、预热和性能测试；
+5. 保存 CSV、控制台输出和环境元数据；
+6. 生成性能总览与 ISO-TP 帧数 SVG。
+
+默认执行 10,000 次测试并预热 1,000 次。可通过环境变量调整：
+
+~~~bash
+ITERATIONS=20000 WARMUP=2000 BENCH_CPU=0 ./run_benchmark.sh
+~~~
+
+不支持 taskset 的平台不要设置 **BENCH_CPU**。如果需要匿名或稳定的设备名称：
+
+~~~bash
+DEVICE_ID=lab-node-01 ./run_benchmark.sh
+~~~
+
+查看当前电脑将使用的自动设备名：
+
+~~~bash
+./run_benchmark.sh --print-device-id
+~~~
+
+也可以使用 Makefile 的等价入口；DEVICE 为空时同样自动识别：
+
+~~~bash
+make benchmark
+make benchmark DEVICE=lab-node-01 CPU=0 ITERATIONS=10000 WARMUP=1000
+~~~
+
+每台设备会生成独立目录：
+
+~~~text
+results/<device-id>/results.csv
+results/<device-id>/results.txt
+results/<device-id>/metadata.txt
+figures/<device-id>/performance_overview.svg
+figures/<device-id>/isotp_frames.svg
+~~~
+
+已有 CSV 只需重新画图时，在原设备运行 **make figures**；也可明确指定目录：
+
+~~~bash
+make figures
+make figures DEVICE=lab-node-01
+~~~
+
+也可以直接控制绘图输入和输出文件名：
+
+~~~bash
+python3 scripts/make_paper_figures.py input.csv output.svg
+python3 scripts/make_paper_figures.py input.csv frames.svg --figure isotp
+~~~
+
+确认结果后，只提交对应设备目录；build/ 和 Python 缓存会被 Git 忽略：
+
+~~~bash
+DEVICE_DIR=$(./run_benchmark.sh --print-device-id)
+git add "results/$DEVICE_DIR" "figures/$DEVICE_DIR"
+git commit -m "Add benchmark results from $DEVICE_DIR"
+git push origin main
+~~~
+
+**make clean** 只删除本地 benchmark 可执行文件，不会删除任何设备结果。
+可用 **TONGSUO_SOURCE**、**TONGSUO_BUILD**、**TONGSUO_PREFIX**、**JOBS**
+和 **CC** 覆盖构建配置。
 
 ## ECS 构造和协议映射
 

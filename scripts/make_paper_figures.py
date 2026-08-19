@@ -162,7 +162,7 @@ def make_overview(rows, output_path):
     s.text(cx+235,cy+68,"Lower is better",18,anchor="end",fill="#555",font_style="italic")
     s.text(cx+cw/2,cy+ch+55,"Total UDS payload (bytes)",21)
     s.text(cx-61,cy+ch/2,"Median online latency (μs)",21,transform=f"rotate(-90 {cx-61} {cy+ch/2})")
-    s.text(W-25,H-18,"10,000 iterations; Tongsuo/OpenSSL 3.5.4; 32-byte challenge",17,anchor="end",fill="#555")
+    s.text(W-25,H-18,"Median/P95 from input CSV; 32-byte challenge",17,anchor="end",fill="#555")
     output_path.write_text(s.finish(), encoding="utf-8")
 
 

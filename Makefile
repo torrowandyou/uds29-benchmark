@@ -6,7 +6,12 @@ CFLAGS += -std=c11 -Wall -Wextra -Wpedantic -Wno-deprecated-declarations
 LDFLAGS += -L$(TONGSUO_PREFIX)/lib64 -L$(TONGSUO_PREFIX)/lib
 LDLIBS += -lcrypto -pthread -ldl -lm
 
-.PHONY: all clean run
+DEVICE ?=
+ITERATIONS ?= 10000
+WARMUP ?= 1000
+CPU ?=
+
+.PHONY: all clean run benchmark figures
 
 all: build/uds29_bench
 
@@ -16,8 +21,11 @@ build/uds29_bench: src/uds29_bench.c | build
 build:
 	mkdir -p $@
 
-run: build/uds29_bench
-	LD_LIBRARY_PATH=$(TONGSUO_PREFIX)/lib64:$(TONGSUO_PREFIX)/lib ./build/uds29_bench --iterations 2000 --warmup 200 --csv results.csv
+run benchmark:
+	@set -eu; if [ -n "$(DEVICE)" ]; then export DEVICE_ID="$(DEVICE)"; fi; export TONGSUO_PREFIX="$(TONGSUO_PREFIX)" CC="$(CC)" ITERATIONS="$(ITERATIONS)" WARMUP="$(WARMUP)"; if [ -n "$(CPU)" ]; then export BENCH_CPU="$(CPU)"; fi; ./run_benchmark.sh
+
+figures:
+	@set -eu; device_id="$(DEVICE)"; if [ -z "$$device_id" ]; then device_id=$$(./run_benchmark.sh --print-device-id); fi; python3 scripts/make_paper_figures.py "results/$$device_id/results.csv" "figures/$$device_id/performance_overview.svg"; python3 scripts/make_paper_figures.py "results/$$device_id/results.csv" "figures/$$device_id/isotp_frames.svg" --figure isotp
 
 clean:
-	rm -f build/uds29_bench results.csv
+	$(RM) build/uds29_bench
