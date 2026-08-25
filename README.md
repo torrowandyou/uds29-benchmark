@@ -109,7 +109,9 @@ figures/<device-id>/latency_payload_tradeoff.svg
 figures/<device-id>/isotp_frames.svg
 ~~~
 
-当前多设备结果的汇总比较见 [多设备 Benchmark 对比分析](docs/MULTI_DEVICE_ANALYSIS.md)。
+当前权威数据与历史结果的可比性说明见
+[多设备结果状态与可比性说明](docs/MULTI_DEVICE_ANALYSIS.md)，各结果目录的状态
+也记录在 [results/README.md](results/README.md)。
 
 metadata.json 采用结构化格式，尽可能记录 CPU 型号、架构、核心/线程、缓存与
 指令集、标称及采样频率、调频驱动/governor、Boost 状态、内存总量与内存条
@@ -119,7 +121,9 @@ Linux 上内存条详情依赖 dmidecode 的可用性和当前用户权限；缺
 不会中断测试。macOS 的硬件序列号、Platform UUID 和 Provisioning UDID 会在写入
 结果前过滤。旧设备目录中的 metadata.txt 是历史格式，不会用其他机器信息补写。
 
-已有 CSV 只需重新画图时，在原设备运行 **make figures**；也可明确指定目录：
+当前 RSA-3072 方案生成的 CSV 只需重新画图时，可在原设备运行
+**make figures**；也可明确指定目录。RSA-2048 历史 CSV 的方案键与当前绘图脚本
+不同，不能直接重画，必须先在对应设备使用当前代码重新测试。
 
 ~~~bash
 make figures
