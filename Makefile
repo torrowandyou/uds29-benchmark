@@ -11,12 +11,18 @@ ITERATIONS ?= 10000
 WARMUP ?= 1000
 CPU ?=
 
-.PHONY: all clean run benchmark figures
+.PHONY: all clean run benchmark figures compile-db test
 
 all: build/uds29_bench
 
-build/uds29_bench: src/uds29_bench.c | build
-	$(CC) $(CPPFLAGS) $(CFLAGS) $< $(LDFLAGS) $(LDLIBS) -o $@
+build/uds29_bench: src/uds29_bench.c src/gmt0130.c src/gmt0130.h | build
+	$(CC) $(CPPFLAGS) $(CFLAGS) src/uds29_bench.c src/gmt0130.c $(LDFLAGS) $(LDLIBS) -o $@
+
+build/gmt0130_test: tests/gmt0130_test.c src/gmt0130.c src/gmt0130.h | build
+	$(CC) $(CPPFLAGS) -Isrc $(CFLAGS) tests/gmt0130_test.c src/gmt0130.c $(LDFLAGS) $(LDLIBS) -o $@
+
+test: build/gmt0130_test
+	env LD_LIBRARY_PATH="$(TONGSUO_PREFIX)/lib64:$(TONGSUO_PREFIX)/lib" DYLD_LIBRARY_PATH="$(TONGSUO_PREFIX)/lib64:$(TONGSUO_PREFIX)/lib" $<
 
 build:
 	mkdir -p $@
@@ -27,5 +33,8 @@ run benchmark:
 figures:
 	@set -eu; device_id="$(DEVICE)"; if [ -z "$$device_id" ]; then device_id=$$(./run_benchmark.sh --print-device-id); fi; csv="results/$$device_id/results.csv"; out="figures/$$device_id"; python3 scripts/make_paper_figures.py "$$csv" "$$out/latency_by_phase.svg" --figure latency; python3 scripts/make_paper_figures.py "$$csv" "$$out/payload_size.svg" --figure payload; python3 scripts/make_paper_figures.py "$$csv" "$$out/latency_payload_tradeoff.svg" --figure tradeoff; python3 scripts/make_paper_figures.py "$$csv" "$$out/isotp_frames.svg" --figure isotp
 
+compile-db:
+	python3 scripts/generate_compile_commands.py
+
 clean:
-	$(RM) build/uds29_bench
+	$(RM) build/uds29_bench build/gmt0130_test

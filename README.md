@@ -2,17 +2,18 @@
 
 本目录给出一个可复现的、基于 Tongsuo `libcrypto` 的 UDS Authentication（0x29）四步握手模拟器。它比较：
 
-- `CL-ECS-SM2`：SM2 曲线上的无配对、Schnorr 型无证书 ECS；
+- `CL-ECS-SM2`：按 GM/T 0130-2023 实现的无证书 SM2 签名；
 - `RSA-2048-PSS+X509`：RSA-2048-PSS/SHA-256 签名和单级 X.509 证书；
 - `ECDSA-P256+X509`：ECDSA-P256/SHA-256 签名和单级 X.509 证书。
 - `SM2-SM3+X509`：SM2/SM3 签名和由 SM2 根签发的单级 X.509 证书。
 
-这里的“ECS”是本文明确实例化的 certificateless elliptic-curve signature，而不是 Tongsuo 内置的标准签名名称。Tongsuo 提供 SM2 曲线、随机数、SM3、BN/EC 运算、RSA、ECDSA 和 X.509 接口，程序在这些接口上构造并测试协议。
+Tongsuo 提供 SM2 曲线、随机数、SM3、BN/EC 运算、RSA、ECDSA 和 X.509 接口，程序在这些接口上实现并测试协议。无证书方案的密钥生成、公钥恢复及数字签名遵循 GM/T 0130-2023，确定性测试采用该标准附录 A 的参考数据。
 
 ## 项目结构与多设备结果
 
 ~~~text
-src/                          固定的 C 源码
+src/                          benchmark 与 GM/T 0130-2023 实现
+tests/                        标准附录 A 确定性测试
 scripts/make_paper_figures.py 固定的 SVG 绘图程序
 scripts/collect_metadata.py   跨平台结构化环境信息采集
 run_benchmark.sh              统一的自动构建、测试和绘图入口
@@ -75,6 +76,22 @@ make benchmark
 make benchmark DEVICE=lab-node-01 CPU=0 ITERATIONS=10000 WARMUP=1000
 ~~~
 
+## clangd / code-server 代码导航
+
+在同时包含 `Tongsuo` 和 `uds29-benchmark` 的上级工作区中执行：
+
+~~~bash
+cd uds29-benchmark
+make compile-db
+~~~
+
+该命令会根据当前 Makefile 和本机 Tongsuo 构建配置，在上级工作区生成合并的
+`compile_commands.json`。数据库同时包含 benchmark 和 Tongsuo 源文件，因此
+clangd 可以使用真实的头文件路径、宏定义和编译选项，并支持跨项目跳转到 Tongsuo
+实现。更换编译器、Tongsuo 配置或构建目录后应重新执行该命令。生成完成后，在
+code-server 命令面板执行 `clangd: Restart language server`；首次建立 Tongsuo
+后台索引可能需要一些时间。
+
 每台设备会生成独立目录：
 
 ~~~text
@@ -94,7 +111,8 @@ metadata.json 采用结构化格式，尽可能记录 CPU 型号、架构、核�
 型号/频率、操作系统和内核、虚拟化环境、系统负载、编译器与实际编译命令、
 benchmark 实际链接库、Tongsuo/OpenSSL/libc/Python 版本及对应 Git 提交。
 Linux 上内存条详情依赖 dmidecode 的可用性和当前用户权限；缺失字段会明确记录，
-不会中断测试。旧设备目录中的 metadata.txt 是历史格式，不会用其他机器信息补写。
+不会中断测试。macOS 的硬件序列号、Platform UUID 和 Provisioning UDID 会在写入
+结果前过滤。旧设备目录中的 metadata.txt 是历史格式，不会用其他机器信息补写。
 
 已有 CSV 只需重新画图时，在原设备运行 **make figures**；也可明确指定目录：
 
@@ -127,45 +145,45 @@ git push origin main
 
 ## ECS 构造和协议映射
 
-设 SM2 曲线生成元为 `P`、阶为 `q`，KGC 主私钥为 `s`，主公钥为 `Ppub=sP`。KGC 为身份 `ID` 随机选择 `r`：
+设 SM2 曲线生成元为 `G`、阶为 `n`，KGC 主私钥为 `ms`，主公钥为 `Ppub=[ms]G`。用户选择秘密值 `d'` 并向 KGC 提交 `U=[d']G`。KGC 按标准计算用户杂凑值 `HA`，选择随机数 `w`：
 
-```text
-R  = rP
-h1 = SM3("UDS29-ECS-H1-v1" || encode(ID,R,Ppub)) mod q
-d  = r + h1*s mod q                  # 部分私钥
-```
+~~~text
+HA     = SM3(ENTL || ID || a || b || xG || yG || xPpub || yPpub)
+W      = [w]G + U
+lambda = SM3(xW || yW || HA) mod n
+t      = (w + lambda*ms) mod n
+d      = (t + d') mod n
+~~~
 
-用户选择秘密值 `x`，公开 `X=xP`，完整私钥为 `(x,d)`，0x2901 公共信息为 `(UUID,X,R)`。ECU 预置 `Ppub`，在 0x2901 计算并缓存：
+若 `d=0` 则重新生成。最终用户私钥是 `d`，声明公钥是 `W`。0x2901 公共信息为 `(UUID,W)`；ECU 预置 `Ppub`，并在 0x2901 恢复实际公钥：
 
-```text
-Q = X + R + h1*Ppub = (x+d)P
-```
+~~~text
+P = W + [lambda]Ppub = [d]G
+~~~
 
-对 32 字节随机挑战 `chal`，客户端选择一次性随机数 `k`：
+对 32 字节随机挑战 `chal`，签名摘要和标准 SM2 签名为：
 
-```text
-U  = kP
-h2 = SM3("UDS29-ECS-H2-v1" || encode(UUID,X,R,chal,U)) mod q
-z  = k + h2*(x+d) mod q
-signature = (U,z)
-```
+~~~text
+e = SM3(HA || xW || yW || chal)
+signature = SM2-SIGN(e, d) = (r,s)
+~~~
 
-ECU 检查 `zP == U + h2*Q`。所有哈希字段均有 32 位长度前缀和域分离串，避免拼接歧义；UUID、公钥信息、挑战和承诺点都被签名绑定。
+ECU 使用恢复的实际公钥 `P` 执行标准 SM2 验签。报文中的点使用 33 字节压缩编码；标准内部哈希仍使用固定 32 字节的仿射坐标。签名在线编码为固定 64 字节 `r || s`。
 
 四个报文按以下方式计数（包含 SID/子功能/结果字节，不含 ISO-TP、CAN、链路层头部）：
 
 | 报文 | CL-ECS | RSA/ECDSA/SM2 + X.509 |
 |---|---:|---:|
-| 0x2901 | `SID,subfn,UUID,X,R` | `SID,subfn,UUID,leaf_cert_DER` |
+| 0x2901 | `SID,subfn,UUID,W` | `SID,subfn,UUID,leaf_cert_DER` |
 | 0x6901 | `SID,subfn,chal[32]` | 相同 |
-| 0x2903 | `SID,subfn,U,z` | `SID,subfn,signature` |
+| 0x2903 | `SID,subfn,r,s` | `SID,subfn,signature` |
 | 0x6903 | `SID,subfn,result` | 相同 |
 
 ## 计时边界
 
 密钥生成、KGC 部分私钥提取、根证书/叶证书签发属于生产或注册阶段，不计入在线握手。每轮在线计时包含：
 
-1. `2901_credential`：ECS 解码/曲线点校验/计算 `Q`；传统方案 DER 解码、单级证书链验证和提取公钥；
+1. `2901_credential`：ECS 解码/曲线点校验/按标准恢复实际公钥 `P`；传统方案 DER 解码、单级证书链验证和提取公钥；
 2. `6901_challenge`：`RAND_bytes` 生成 32 字节挑战；
 3. `2903_sign`：对挑战签名；
 4. `6903_verify`：验证挑战签名。
@@ -176,9 +194,17 @@ ECU 检查 `zP == U + h2*Q`。所有哈希字段均有 32 位长度前缀和域�
 
 程序启动时还会对每种方案执行篡改挑战的负向用例，任何错误接受都会令程序失败。当前实验结果与解释见 [REPORT.md](REPORT.md)。
 
+标准附录 A 一致性测试可独立执行：
+
+~~~bash
+make test
+~~~
+
+测试固定使用附录 A 的 `ms`、`d'`、`w` 和签名随机数 `k`，逐项比较 `Ppub`、`HA`、`W`、`d`、实际公钥 `P` 和签名 `(r,s)`，并检查篡改消息不能通过验签。
+
 ## 适用边界
 
 - 实验测的是密码计算和实际编码长度，不模拟 CAN 仲裁、总线负载、P2/P2* 定时、网络往返延迟、HSM/安全芯片或证书吊销在线查询。
 - 传统方案每次会话验证叶证书；若 ECU 安全地缓存已验证证书，可用结果中的 `2903_sign + 6903_verify` 观察热会话签名成本。
-- ECS 的安全性证明、KGC 注册信道、主密钥保护、撤销/更新机制、抗公钥替换证明和正式协议编码需要在论文中单独论证。本程序是性能原型，不是量产安全实现。
-- ECDSA DER 签名长度随 `(r,s)` 变化，报文字节数采用观测到的最大值；ECS 使用固定 65 字节压缩编码。
+- KGC 注册信道、主密钥保护、撤销/更新机制、身份授权策略和正式 UDS 数据标识符编码仍需在量产设计中补充。本程序是性能原型，不是量产安全实现。
+- ECDSA DER 签名长度随 `(r,s)` 变化，报文字节数采用观测到的最大值；ECS 使用固定 64 字节 `r || s` 编码。

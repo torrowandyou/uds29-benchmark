@@ -231,10 +231,25 @@ def sysctl_value(name):
     return command_output(["sysctl", "-n", name])
 
 
+def sanitize_system_profiler(value):
+    """Remove stable hardware identifiers that must not be published."""
+    sensitive_keys = {"serial_number", "platform_UUID", "provisioning_UDID"}
+    if isinstance(value, dict):
+        return {
+            key: sanitize_system_profiler(item)
+            for key, item in value.items()
+            if key not in sensitive_keys
+        }
+    if isinstance(value, list):
+        return [sanitize_system_profiler(item) for item in value]
+    return value
+
+
 def macos_metadata():
     hardware_output = command_output(["system_profiler", "SPHardwareDataType", "SPMemoryDataType", "-json"], timeout=30)
     try:
         profiler = json.loads(hardware_output) if hardware_output else None
+        profiler = sanitize_system_profiler(profiler)
     except json.JSONDecodeError:
         profiler = None
     return {
