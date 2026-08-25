@@ -284,9 +284,12 @@ def make_frames(rows, output_path):
     def frames_fd(n): return 1 if n<=62 else 1+math.ceil((n-62)/63)
     keys=["wire_2901","wire_6901","wire_2903","wire_6903"]
     vals={sname:(sum(frames_classic(int(rows[(sname,"total")][k])) for k in keys),sum(frames_fd(int(rows[(sname,"total")][k])) for k in keys)) for sname in SCHEMES}
-    x0,y0,pw,ph=105,105,900,470; ymax=160
-    for tick in range(0,161,20):
-        y=y0+ph-tick/ymax*ph;s.line(x0,y,x0+pw,y,stroke="#D5D5D5",stroke_width=1);s.text(x0-12,y+7,tick,21,anchor="end")
+    x0,y0,pw,ph=105,105,900,470
+    ymax,tick_step=nice_axis(max(max(pair) for pair in vals.values()),6)
+    tick=0.0
+    while tick<=ymax:
+        y=y0+ph-tick/ymax*ph;s.line(x0,y,x0+pw,y,stroke="#D5D5D5",stroke_width=1);s.text(x0-12,y+7,int(tick),21,anchor="end")
+        tick+=tick_step
     s.line(x0,y0,x0,y0+ph);s.line(x0,y0+ph,x0+pw,y0+ph)
     for i,scheme in enumerate(SCHEMES):
         center=x0+112.5+i*225
