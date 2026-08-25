@@ -1,0 +1,131 @@
+{
+  "schema_version": 1,
+  "generated_at_utc": "2026-08-25T03:36:02.442865+00:00",
+  "device": {
+    "id": "wangguilin-wangguilindemac-mini-darwin-arm64",
+    "user": "wangguilin",
+    "hostname": "wangguilindeMac-mini.local"
+  },
+  "operating_system": {
+    "system": "Darwin",
+    "release": "24.2.0",
+    "version": "Darwin Kernel Version 24.2.0: Fri Dec  6 19:04:03 PST 2024; root:xnu-11215.61.5~2/RELEASE_ARM64_T8132",
+    "kernel": "Darwin wangguilindeMac-mini.local 24.2.0 Darwin Kernel Version 24.2.0: Fri Dec  6 19:04:03 PST 2024; root:xnu-11215.61.5~2/RELEASE_ARM64_T8132 arm64",
+    "distribution": {
+      "product_name": "macOS",
+      "product_version": "15.2",
+      "build_version": "24C101"
+    },
+    "virtualization": "unavailable"
+  },
+  "hardware": {
+    "model": null,
+    "system_profiler": {
+      "SPHardwareDataType": [
+        {
+          "_name": "hardware_overview",
+          "boot_rom_version": "11881.61.3",
+          "chip_type": "Apple M4",
+          "machine_model": "Mac16,10",
+          "machine_name": "Mac mini",
+          "model_number": "MU9D3CH/A",
+          "number_processors": "proc 10:4:6",
+          "os_loader_version": "11881.61.3",
+          "physical_memory": "16 GB"
+        }
+      ],
+      "SPMemoryDataType": [
+        {
+          "dimm_manufacturer": "Micron",
+          "dimm_type": "LPDDR5",
+          "SPMemoryDataType": "16 GB"
+        }
+      ]
+    }
+  },
+  "cpu": {
+    "architecture": "arm64",
+    "model_name": null,
+    "physical_cores": null,
+    "logical_cpus": null,
+    "frequency_hz": null,
+    "frequency_max_hz": null,
+    "frequency_min_hz": null
+  },
+  "memory": {
+    "total_bytes": null,
+    "system_profiler_included": true
+  },
+  "benchmark": {
+    "source": {
+      "available": true,
+      "commit": "ae12f4495368471d76bfbb19525618b6172c144d",
+      "worktree": "clean"
+    },
+    "iterations": 10000,
+    "warmup": 1000,
+    "cpu_affinity": "unbound",
+    "executable": "/Users/wangguilin/Project/CProj/uds29-benchmark/build/uds29_bench",
+    "linked_libraries": [
+      "/Users/wangguilin/Project/CProj/uds29-benchmark/build/uds29_bench:",
+      "\t/Users/wangguilin/Project/CProj/uds29-benchmark/build/tongsuo-install/lib/libcrypto.3.dylib (compatibility version 3.0.0, current version 3.0.0)",
+      "\t/usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1351.0.0)"
+    ],
+    "system_load_average": [
+      2.919921875,
+      3.0634765625,
+      2.71240234375
+    ]
+  },
+  "build": {
+    "compiler": {
+      "command": "cc",
+      "version": [
+        "Apple clang version 16.0.0 (clang-1600.0.26.6)",
+        "Target: arm64-apple-darwin24.2.0",
+        "Thread model: posix",
+        "InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin"
+      ]
+    },
+    "effective_make_dry_run": [
+      "mkdir -p build",
+      "cc -I/Users/wangguilin/Project/CProj/uds29-benchmark/build/tongsuo-install/include -O2 -g -std=c11 -Wall -Wextra -Wpedantic -Wno-deprecated-declarations src/uds29_bench.c src/gmt0130.c -L/Users/wangguilin/Project/CProj/uds29-benchmark/build/tongsuo-install/lib64 -L/Users/wangguilin/Project/CProj/uds29-benchmark/build/tongsuo-install/lib -lcrypto -pthread -ldl -lm -o build/uds29_bench"
+    ],
+    "environment": {
+      "CC": null,
+      "CFLAGS": null,
+      "CPPFLAGS": null,
+      "LDFLAGS": null,
+      "JOBS": null
+    }
+  },
+  "dependencies": {
+    "tongsuo": {
+      "prefix": "/Users/wangguilin/Project/CProj/uds29-benchmark/build/tongsuo-install",
+      "version": [
+        "Tongsuo: Tongsuo 8.5.0-pre2 (Library: Tongsuo 8.5.0-pre2)",
+        "OpenSSL 3.5.4 3 Aug 2026 (Library: OpenSSL 3.5.4 3 Aug 2026)",
+        "built on: Fri Aug 21 03:14:38 2026 UTC",
+        "platform: darwin64-arm64",
+        "options:  bn(64,64)",
+        "compiler: cc -fPIC -arch arm64 -O3 -Wall -DL_ENDIAN -DOPENSSL_PIC -D_REENTRANT -DOPENSSL_BUILDING_OPENSSL -DNDEBUG ",
+        "OPENSSLDIR: \"/Users/wangguilin/Project/CProj/uds29-benchmark/build/tongsuo-install/ssl\"",
+        "ENGINESDIR: \"/Users/wangguilin/Project/CProj/uds29-benchmark/build/tongsuo-install/lib/engines-3\"",
+        "MODULESDIR: \"/Users/wangguilin/Project/CProj/uds29-benchmark/build/tongsuo-install/lib/ossl-modules\"",
+        "Seeding source: os-specific",
+        "CPUINFO: OPENSSL_armcap=0x987d",
+        "engines:  dynamic"
+      ],
+      "source": {
+        "available": true,
+        "commit": "540603a3ff952ce00590bca022015feffbfb7597",
+        "worktree": "clean"
+      }
+    },
+    "libc": {
+      "name": null,
+      "version": null
+    },
+    "python": "3.9.6"
+  }
+}
