@@ -1,3 +1,37 @@
-build/
+# C/C++ build outputs and local compilation databases
+/build/
+*.dSYM/
+compile_commands.json
+compile_flags.txt
+
+# Python bytecode, virtual environments, and tool caches
 __pycache__/
 *.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Editor and language-server state
+.vscode/
+.idea/
+.cache/
+*.swp
+*.swo
+*~
+
+# Local environment files; keep a shareable example if one is added
+.env
+.env.*
+!.env.example
+
+# Operating-system metadata and crash dumps
+.DS_Store
+.AppleDouble
+core
+core.*
+vgcore.*

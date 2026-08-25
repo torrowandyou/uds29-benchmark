@@ -9,10 +9,10 @@ import html
 import math
 from pathlib import Path
 
-SCHEMES = ["CL-ECS-SM2", "RSA-2048-PSS+X509", "ECDSA-P256+X509", "SM2-SM3+X509"]
-SHORT = {"CL-ECS-SM2": "CL-ECS-SM2", "RSA-2048-PSS+X509": "RSA-2048", "ECDSA-P256+X509": "ECDSA-P256", "SM2-SM3+X509": "SM2-SM3"}
-COLORS = {"CL-ECS-SM2": "#0072B2", "RSA-2048-PSS+X509": "#D55E00", "ECDSA-P256+X509": "#009E73", "SM2-SM3+X509": "#CC79A7"}
-HATCH = {"CL-ECS-SM2": "diag", "RSA-2048-PSS+X509": "cross", "ECDSA-P256+X509": "dots", "SM2-SM3+X509": "horiz"}
+SCHEMES = ["CL-ECS-SM2", "RSA-3072-PSS+X509", "ECDSA-P256+X509", "SM2-SM3+X509"]
+SHORT = {"CL-ECS-SM2": "CL-ECS-SM2", "RSA-3072-PSS+X509": "RSA-3072", "ECDSA-P256+X509": "ECDSA-P256", "SM2-SM3+X509": "SM2-SM3"}
+COLORS = {"CL-ECS-SM2": "#0072B2", "RSA-3072-PSS+X509": "#D55E00", "ECDSA-P256+X509": "#009E73", "SM2-SM3+X509": "#CC79A7"}
+HATCH = {"CL-ECS-SM2": "diag", "RSA-3072-PSS+X509": "cross", "ECDSA-P256+X509": "dots", "SM2-SM3+X509": "horiz"}
 PHASES = ["2901_credential", "6901_challenge", "2903_sign", "6903_verify"]
 PHASE_LABELS = ["0x2901\nCredential", "0x6901\nChallenge", "0x2903\nSigning", "0x6903\nVerification"]
 MSG_COLORS = ["#4C78A8", "#F58518", "#54A24B", "#B279A2"]
@@ -194,7 +194,7 @@ def make_payload(rows, output_path):
                 s.text(center, (y_top + y_bottom) / 2 + 7, value, 17, fill="white", weight="bold")
             accumulated += value
         s.text(center, yscale(accumulated) - 9, accumulated, 20, weight="bold")
-        label = SHORT[scheme].replace("-2048", "\n2048").replace("-P256", "\nP256").replace("-SM3", "\nSM3")
+        label = SHORT[scheme].replace("-3072", "\n3072").replace("-P256", "\nP256").replace("-SM3", "\nSM3")
         s.text(center, y0 + ph + 30, label, 18)
 
     s.text(28, y0 + ph / 2, "Application payload (bytes)", 22, transform=f"rotate(-90 28 {y0 + ph / 2})")

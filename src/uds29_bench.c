@@ -27,6 +27,8 @@
 #define CHAL_LEN 32
 #define POINT_LEN GMT0130_POINT_LEN
 #define SCALAR_LEN 32
+#define RSA_BITS 3072
+#define RSA_BYTES (RSA_BITS / 8)
 #define ECS_CRED_LEN (UUID_LEN + POINT_LEN)
 #define ECS_SIG_LEN GMT0130_SIGNATURE_LEN
 #define PHASES 4
@@ -139,7 +141,7 @@ static int ecs_verify(const ecs_ctx *e, const unsigned char cred[ECS_CRED_LEN],
 static EVP_PKEY *make_key(const cert_ctx *c) {
   EVP_PKEY *p;
   if (c->rsa)
-    p = EVP_PKEY_Q_keygen(NULL, NULL, "RSA", (size_t)2048);
+    p = EVP_PKEY_Q_keygen(NULL, NULL, "RSA", (size_t)RSA_BITS);
   else if (c->sm2)
     p = EVP_PKEY_Q_keygen(NULL, NULL, "SM2");
   else
@@ -526,7 +528,7 @@ int main(int argc, char **argv) {
     return 2;
   }
   ecs_init(&ecs);
-  cert_init(&rsa, "RSA-2048-PSS+X509", 1, 0);
+  cert_init(&rsa, "RSA-3072-PSS+X509", 1, 0);
   cert_init(&ecdsa, "ECDSA-P256+X509", 0, 0);
   cert_init(&sm2, "SM2-SM3+X509", 0, 1);
   negative_tests(&ecs, &rsa, &ecdsa, &sm2);
@@ -537,7 +539,7 @@ int main(int argc, char **argv) {
   re.pub_len = POINT_LEN;
   re.cert_len = 0;
   re.sig_len_min = re.sig_len_max = ECS_SIG_LEN;
-  rr.pub_len = 256;
+  rr.pub_len = RSA_BYTES;
   rr.cert_len = (size_t)rsa.cert_der_len;
   rc.pub_len = POINT_LEN;
   rc.cert_len = (size_t)ecdsa.cert_der_len;
