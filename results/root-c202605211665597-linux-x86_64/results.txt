@@ -2,29 +2,29 @@ Tongsuo/OpenSSL: OpenSSL 3.5.4 3 Aug 2026
 iterations=10000 warmup=1000 challenge=32 bytes; negative tests=PASS
 
 CL-ECS-SM2         wire=154 bytes (2901=51,6901=34,2903=66,6903=3)
-  2901_credential    mean=  445.168 us  median=  428.607  p95=  531.570  sd=  62.755
-  6901_challenge     mean=    1.256 us  median=    0.918  p95=    3.236  sd=   1.128
-  2903_sign          mean=  449.802 us  median=  433.179  p95=  538.878  sd=  66.126
-  6903_verify        mean=  421.931 us  median=  405.937  p95=  508.430  sd=  59.573
-  crypto_total       mean= 1318.157 us  median= 1269.395  p95= 1498.559  sd= 172.912
+  2901_credential    mean=  446.125 us  median=  430.395  p95=  509.130  sd=  67.394
+  6901_challenge     mean=    1.530 us  median=    1.020  p95=    3.032  sd=  17.243
+  2903_sign          mean=  449.148 us  median=  432.534  p95=  517.685  sd=  80.247
+  6903_verify        mean=  420.496 us  median=  406.287  p95=  484.696  sd=  52.455
+  crypto_total       mean= 1317.298 us  median= 1277.675  p95= 1475.083  sd= 157.465
 
-RSA-2048-PSS+X509  wire=1055 bytes (2901=760,6901=34,2903=258,6903=3)
-  2901_credential    mean=   88.588 us  median=   82.760  p95=  125.592  sd=  21.394
-  6901_challenge     mean=    2.098 us  median=    1.696  p95=    4.220  sd=   2.273
-  2903_sign          mean=  660.715 us  median=  623.296  p95= 1008.919  sd= 116.775
-  6903_verify        mean=   39.746 us  median=   36.741  p95=   55.401  sd=   8.483
-  crypto_total       mean=  791.147 us  median=  748.708  p95= 1134.083  sd= 134.793
+RSA-3072-PSS+X509  wire=1439 bytes (2901=1016,6901=34,2903=386,6903=3)
+  2901_credential    mean=  116.204 us  median=  109.959  p95=  155.426  sd=  39.901
+  6901_challenge     mean=    2.212 us  median=    1.841  p95=    4.170  sd=   1.571
+  2903_sign          mean= 1944.876 us  median= 1870.636  p95= 2585.137  sd= 264.815
+  6903_verify        mean=   67.768 us  median=   63.655  p95=   86.275  sd=  37.559
+  crypto_total       mean= 2131.059 us  median= 2050.834  p95= 2770.765  sd= 290.132
 
 ECDSA-P256+X509    wire=476 bytes (2901=365,6901=34,2903=74,6903=3)
-  2901_credential    mean=  154.689 us  median=  146.740  p95=  205.110  sd=  28.327
-  6901_challenge     mean=    2.622 us  median=    2.130  p95=    5.144  sd=   1.527
-  2903_sign          mean=   32.914 us  median=   30.535  p95=   48.335  sd=   7.743
-  6903_verify        mean=   77.149 us  median=   72.561  p95=   99.155  sd=  12.226
-  crypto_total       mean=  267.374 us  median=  255.777  p95=  343.218  sd=  42.581
+  2901_credential    mean=  168.963 us  median=  161.918  p95=  217.749  sd=  39.421
+  6901_challenge     mean=    3.718 us  median=    3.113  p95=    6.590  sd=   8.887
+  2903_sign          mean=   35.010 us  median=   32.759  p95=   47.612  sd=  14.318
+  6903_verify        mean=   77.175 us  median=   72.709  p95=   95.522  sd=  13.846
+  crypto_total       mean=  284.865 us  median=  274.147  p95=  354.569  sd=  53.068
 
 SM2-SM3+X509       wire=474 bytes (2901=363,6901=34,2903=74,6903=3)
-  2901_credential    mean=  473.881 us  median=  454.779  p95=  579.374  sd=  68.204
-  6901_challenge     mean=    1.449 us  median=    1.092  p95=    3.437  sd=   1.647
-  2903_sign          mean=  445.162 us  median=  429.570  p95=  536.640  sd=  64.428
-  6903_verify        mean=  396.912 us  median=  382.228  p95=  479.141  sd=  56.946
-  crypto_total       mean= 1317.403 us  median= 1267.245  p95= 1516.419  sd= 174.929
+  2901_credential    mean=  479.542 us  median=  461.370  p95=  561.767  sd=  79.202
+  6901_challenge     mean=    1.492 us  median=    1.172  p95=    3.093  sd=   1.287
+  2903_sign          mean=  447.281 us  median=  430.171  p95=  516.300  sd=  81.381
+  6903_verify        mean=  397.910 us  median=  383.029  p95=  461.618  sd=  67.129
+  crypto_total       mean= 1326.225 us  median= 1284.739  p95= 1511.751  sd= 171.951
